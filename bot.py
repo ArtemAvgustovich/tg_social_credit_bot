@@ -1,14 +1,14 @@
 # *-* encoding utf-8
 import logging
-
+import os
 from aiogram import Bot, Dispatcher, executor, types
-from constants import add_rating_sticker_id, remove_rating_sticker_id, API_TOKEN
+from constants import add_rating_sticker_id, remove_rating_sticker_id
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # Initialize bot and dispatcher
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=os.environ.get('TOKEN'))
 dp = Dispatcher(bot)
 
 
