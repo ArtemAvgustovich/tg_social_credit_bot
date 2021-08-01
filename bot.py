@@ -1,6 +1,5 @@
 # *-* encoding utf-8
 import logging
-import emoji
 
 from aiogram import Bot, Dispatcher, executor, types
 from constants import add_rating_sticker_id, remove_rating_sticker_id, API_TOKEN
