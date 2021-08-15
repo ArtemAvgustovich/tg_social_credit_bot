@@ -29,6 +29,7 @@ async def add_rating(message: types.Message):
     
     sticker = message.sticker
     if not sticker.set_name == 'PoohSocialCredit':
+        await message.reply("Unknown sticker")
         return
     if message.reply_to_message is not None:
         user_to_change_rating = message.reply_to_message.from_user
