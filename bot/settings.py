@@ -1,9 +1,9 @@
 import os
 
 
-TOKEN = os.getenv('BOT_TOKEN')
+TOKEN = os.getenv('TOKEN')
 if not TOKEN:
-    print("You have forgot to set BOT_TOKEN")
+    print("You have forgot to set TOKEN")
     quit()
 
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")

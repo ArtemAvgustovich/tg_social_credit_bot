@@ -5,8 +5,8 @@ from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
-from constants import add_rating_sticker_id, remove_rating_sticker_id
-from settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
+from bot.constants import add_rating_sticker_id, remove_rating_sticker_id
+from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
