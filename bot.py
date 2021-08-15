@@ -37,6 +37,8 @@ async def add_rating(message: types.Message):
             await message.reply(f"{message.from_user.username} added 20 social credit to {user_to_change_rating.username}")
         elif sticker.file_unique_id == remove_rating_sticker_id:
             await message.reply(f"{message.from_user.username} removed 20 social from to {user_to_change_rating.username}")
+        else:
+            await message.reply(str(vars(sticker)))
     else:
         await message.reply("It seems like you forgot to reply")
 
