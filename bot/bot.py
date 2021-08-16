@@ -27,16 +27,10 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
 async def add_rating(message: types.Message):
-    """
-    :param message:
-    :return:
-    """
-    
     sticker = message.sticker
-    if not sticker.set_name == 'PoohSocialCredit':
-        await message.reply("Unknown sticker")
-        return
-    if message.reply_to_message is not None:
+    if sticker.set_name != 'PoohSocialCredit':
+        await message.reply("Unknown stickerpack")
+    elif message.reply_to_message is not None:
         user_to_change_rating = message.reply_to_message.from_user
         if sticker.file_unique_id == add_rating_sticker_id:
             await message.reply(f"{message.from_user.username} added 20 social credit to {user_to_change_rating.username}")
