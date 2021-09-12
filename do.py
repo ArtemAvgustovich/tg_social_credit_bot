@@ -1,4 +1,4 @@
-''' Run a function by ado <func_name> '''
+""" Run a function by ado <func_name> """
 
 
 def set_hook():
@@ -20,6 +20,8 @@ def set_hook():
 
 def start():
     from bot.bot import main
+    from database import setup_table
+    setup_table()
     main()
 
 
