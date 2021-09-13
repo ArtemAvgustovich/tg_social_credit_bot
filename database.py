@@ -7,6 +7,7 @@ CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS social_credit (
 user_id BIGINT NOT NULL,
 chat_id BIGINT NOT NULL,
+username VARCHAR,
 rating INTEGER,
 PRIMARY KEY (user_id, chat_id)
 );

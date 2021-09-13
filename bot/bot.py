@@ -11,7 +11,7 @@ from database import change_rating
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 # Initialize bot and dispatcher
 bot = Bot(token=TOKEN)
@@ -29,21 +29,11 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
 async def process_sticker(message: types.Message):
-    sticker = message.sticker
-    if sticker.set_name != 'PoohSocialCredit':
-        await message.reply("Unknown stickerpack")
-    elif message.reply_to_message is not None:
-        affected_user = message.reply_to_message.from_user
-        if sticker.file_unique_id == add_rating_sticker_id:
-            change_rating(affected_user.id, message.chat.id, 20)
-            await message.reply(f"{message.from_user.username} added 20 social credit to {affected_user.username}")
-        elif sticker.file_unique_id == remove_rating_sticker_id:
-            change_rating(affected_user.id, message.chat.id, -20)
-            await message.reply(f"{message.from_user.username} removed 20 social from to {affected_user.username}")
-        else:
-            await message.reply("Unknown sticker")
+    logging.info(f"[process_sticker] Processing sticker ({message.sticker.set_name}, {message.sticker.emoji})")
+    if message.sticker.set_name == 'PoohSocialCredit':
+        await change_social_rating(message)
     else:
-        await message.reply("It seems like you forgot to reply")
+        await message.reply("Unknown stickerpack")
 
 
 async def on_startup(dispatcher):
@@ -53,6 +43,31 @@ async def on_startup(dispatcher):
 
 async def on_shutdown(dispatcher):
     logging.warning("Bye! Shutting down webhook connection")
+
+
+async def change_social_rating(message: types.Message):
+    sender_username = message.from_user.username
+    if message.reply_to_message is None:
+        logging.debug(f"[change_social_rating] User {sender_username} didn't reply.")
+        return
+
+    affected_user = message.reply_to_message.from_user
+    user_id = affected_user.id
+    chat_id = message.chat.id
+    sticker = message.sticker
+    username = affected_user.username
+    
+    logging.info(f"[change_social_rating] {username}'s rating changed by {sender_username}. "
+                 f"user_id: {user_id}, chat_id: {chat_id}")
+    
+    if sticker.file_unique_id == add_rating_sticker_id:
+        change_rating(user_id, chat_id, 20)
+        await message.reply(f"{sender_username} added 20 social rating credit to {username}")
+    elif sticker.file_unique_id == remove_rating_sticker_id:
+        change_rating(user_id, chat_id, -20)
+        await message.reply(f"{sender_username} removed 20 social rating from to {username}")
+    else:
+        logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
 
 
 def main():
