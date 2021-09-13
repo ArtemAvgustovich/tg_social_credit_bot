@@ -5,7 +5,7 @@ from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
-from bot.constants import add_rating_sticker_id, remove_rating_sticker_id
+from bot.constants import add_rating_sticker_id, remove_rating_sticker_id, HELP_MESSAGE
 from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
 from database import change_rating
 
@@ -24,7 +24,12 @@ async def send_welcome(message: types.Message):
     """
     This handler will be called when user sends `/start` or `/help` command
     """
-    await message.reply("Poshel nahui")
+    await message.reply(HELP_MESSAGE)
+
+
+@dp.message_handler(commands=['rating_stats'])
+async def show_rating_stats(message: types.Message):
+    await message.reply("Work in progress")
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)

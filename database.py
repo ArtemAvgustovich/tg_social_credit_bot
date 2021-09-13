@@ -13,8 +13,8 @@ PRIMARY KEY (user_id, chat_id)
 );
 """
 ADD_USER_RATING = """
-INSERT INTO social_credit (user_id, chat_id, rating)
-VALUES ({user_id}, {chat_id}, {rating})
+INSERT INTO social_credit (user_id, chat_id, username, rating)
+VALUES ({user_id}, {chat_id}, {username} {rating})
 """
 SELECT_RATING = """
 SELECT rating
