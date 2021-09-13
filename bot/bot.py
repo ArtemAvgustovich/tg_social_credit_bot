@@ -28,18 +28,18 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
-async def change_rating(message: types.Message):
+async def process_sticker(message: types.Message):
     sticker = message.sticker
     if sticker.set_name != 'PoohSocialCredit':
         await message.reply("Unknown stickerpack")
     elif message.reply_to_message is not None:
-        user_to_change_rating = message.reply_to_message.from_user
+        affected_user = message.reply_to_message.from_user
         if sticker.file_unique_id == add_rating_sticker_id:
-            await change_rating(user_to_change_rating.id, message.chat.id, 20)
-            await message.reply(f"{message.from_user.username} added 20 social credit to {user_to_change_rating.username}")
+            change_rating(affected_user.id, message.chat.id, 20)
+            await message.reply(f"{message.from_user.username} added 20 social credit to {affected_user.username}")
         elif sticker.file_unique_id == remove_rating_sticker_id:
-            await change_rating(user_to_change_rating.id, message.chat.id, -20)
-            await message.reply(f"{message.from_user.username} removed 20 social from to {user_to_change_rating.username}")
+            change_rating(affected_user.id, message.chat.id, -20)
+            await message.reply(f"{message.from_user.username} removed 20 social from to {affected_user.username}")
         else:
             await message.reply("Unknown sticker")
     else:
