@@ -7,6 +7,8 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
 from bot.constants import add_rating_sticker_id, remove_rating_sticker_id
 from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
+from database import change_rating
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,18 +28,20 @@ async def send_welcome(message: types.Message):
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
-async def add_rating(message: types.Message):
+async def change_rating(message: types.Message):
     sticker = message.sticker
     if sticker.set_name != 'PoohSocialCredit':
         await message.reply("Unknown stickerpack")
     elif message.reply_to_message is not None:
         user_to_change_rating = message.reply_to_message.from_user
         if sticker.file_unique_id == add_rating_sticker_id:
+            await change_rating(user_to_change_rating.id, message.chat.id, 20)
             await message.reply(f"{message.from_user.username} added 20 social credit to {user_to_change_rating.username}")
         elif sticker.file_unique_id == remove_rating_sticker_id:
+            await change_rating(user_to_change_rating.id, message.chat.id, -20)
             await message.reply(f"{message.from_user.username} removed 20 social from to {user_to_change_rating.username}")
         else:
-            await message.reply(str(vars(sticker)))
+            await message.reply("Unknown sticker")
     else:
         await message.reply("It seems like you forgot to reply")
 
