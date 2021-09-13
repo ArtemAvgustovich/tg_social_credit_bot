@@ -32,5 +32,7 @@ def setup_table():
 def change_rating(user_id, chat_id, delta):
     cursor.execute(SELECT_RATING.format(user_id=user_id, chat_id=chat_id))
     rating = cursor.fetchone()[0]
+    if rating is None:
+        rating = 0
     cursor.execute(CHANGE_RATING.format(user_id=user_id, chat_id=chat_id, rating=rating+delta))
     connection.commit()
