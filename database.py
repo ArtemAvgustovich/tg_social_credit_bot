@@ -5,9 +5,9 @@ import psycopg2
 DATABASE_URL = os.getenv('DATABASE_URL')
 CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS social_credit (
-user_id integer,
-chat_id integer,
-rating integer,
+user_id integer(64),
+chat_id integer(64),
+rating integer(16),
 PRIMARY KEY (user_id, chat_id)
 );
 """
@@ -32,8 +32,8 @@ def setup_table():
 def change_rating(user_id, chat_id, delta):
     cursor.execute(SELECT_RATING.format(user_id=user_id, chat_id=chat_id))
     print(cursor.fetchall())
-    print(cursor.fetchone())
     rating = cursor.fetchone()
+    print(rating)
     if rating is None:
         rating = 0
     cursor.execute(CHANGE_RATING.format(user_id=user_id, chat_id=chat_id, rating=rating+delta))
