@@ -61,10 +61,10 @@ async def change_social_rating(message: types.Message):
                  f"user_id: {user_id}, chat_id: {chat_id}")
     
     if sticker.file_unique_id == add_rating_sticker_id:
-        change_rating(user_id, chat_id, 20)
+        change_rating(user_id, chat_id, username, 20)
         await message.reply(f"{sender_username} added 20 social rating credit to {username}")
     elif sticker.file_unique_id == remove_rating_sticker_id:
-        change_rating(user_id, chat_id, -20)
+        change_rating(user_id, chat_id, username, -20)
         await message.reply(f"{sender_username} removed 20 social rating from to {username}")
     else:
         logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
