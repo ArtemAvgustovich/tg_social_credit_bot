@@ -32,7 +32,6 @@ def setup_table():
 
 def change_rating(user_id, chat_id, delta):
     cursor.execute(SELECT_RATING.format(user_id=user_id, chat_id=chat_id))
-    print(cursor.fetchall())
     rating = cursor.fetchone()
     print(rating)
     if rating is None:
