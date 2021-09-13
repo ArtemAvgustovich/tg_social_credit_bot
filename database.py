@@ -5,9 +5,9 @@ import psycopg2
 DATABASE_URL = os.getenv('DATABASE_URL')
 CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS social_credit (
-user_id integer(64),
-chat_id integer(64),
-rating integer(16),
+user_id BIGINT NOT NULL,
+chat_id BIGINT NOT NULL,
+rating INTEGER,
 PRIMARY KEY (user_id, chat_id)
 );
 """
