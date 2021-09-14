@@ -29,7 +29,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(commands=['social_rating'])
 async def show_rating_stats(message: types.Message):
-    await message.reply(chat_stats(message.chat.id))
+    await message.reply("\n".join(f"{username} {rating}" for username, rating in chat_stats(message.chat.id)))
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
@@ -37,8 +37,6 @@ async def process_sticker(message: types.Message):
     logging.info(f"[process_sticker] Processing sticker ({message.sticker.set_name}, {message.sticker.emoji})")
     if message.sticker.set_name == 'PoohSocialCredit':
         await change_social_rating(message)
-    else:
-        await message.reply("Unknown stickerpack")
 
 
 async def on_startup(dispatcher):
