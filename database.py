@@ -26,6 +26,11 @@ UPDATE social_credit
 SET rating = {rating}
 WHERE user_id={user_id} AND chat_id={chat_id}
 """
+SHOW_STATS = """
+SELECT username, rating
+FROM social_credit
+WHERE chat_id={chat_id}
+"""
 connection = psycopg2.connect(DATABASE_URL, sslmode='require')
 cursor = connection.cursor()
 
@@ -39,7 +44,15 @@ def change_rating(user_id, chat_id, username, delta):
     cursor.execute(SELECT_RATING.format(user_id=user_id, chat_id=chat_id))
     data = cursor.fetchone()
     if data is None:
-        cursor.execute(ADD_USER_RATING.format(user_id=user_id, chat_id=chat_id, username=username, rating=delta))
+        new_rating = delta
+        cursor.execute(ADD_USER_RATING.format(user_id=user_id, chat_id=chat_id, username=username, rating=new_rating))
     else:
-        cursor.execute(CHANGE_RATING.format(user_id=user_id, chat_id=chat_id, rating=data[0]+delta))
+        new_rating = data[0]+delta
+        cursor.execute(CHANGE_RATING.format(user_id=user_id, chat_id=chat_id, rating=new_rating))
     connection.commit()
+    return new_rating
+
+
+def chat_stats(chat_id):
+    cursor.execute(SHOW_STATS.format(chat_id=chat_id))
+    return cursor.fetchall()

@@ -7,7 +7,7 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
 from bot.constants import add_rating_sticker_id, remove_rating_sticker_id, HELP_MESSAGE
 from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
-from database import change_rating
+from database import change_rating, chat_stats
 
 
 # Configure logging
@@ -27,9 +27,9 @@ async def send_welcome(message: types.Message):
     await message.reply(HELP_MESSAGE)
 
 
-@dp.message_handler(commands=['rating_stats'])
+@dp.message_handler(commands=['social_rating'])
 async def show_rating_stats(message: types.Message):
-    await message.reply("Work in progress")
+    await message.reply(chat_stats(message.chat.id))
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
@@ -66,11 +66,13 @@ async def change_social_rating(message: types.Message):
                  f"user_id: {user_id}, chat_id: {chat_id}")
     
     if sticker.file_unique_id == add_rating_sticker_id:
-        change_rating(user_id, chat_id, username, 20)
-        await message.reply(f"{sender_username} added 20 social rating credit to {username}")
+        new_rating = change_rating(user_id, chat_id, username, 20)
+        await message.reply(f"{sender_username} added 20 social rating credit to {username}"
+                            f"Now his rating is {new_rating}")
     elif sticker.file_unique_id == remove_rating_sticker_id:
-        change_rating(user_id, chat_id, username, -20)
-        await message.reply(f"{sender_username} removed 20 social rating from to {username}")
+        new_rating = change_rating(user_id, chat_id, username, -20)
+        await message.reply(f"{sender_username} removed 20 social rating from to {username}"
+                            f"Now his rating is {new_rating}")
     else:
         logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
 
