@@ -29,7 +29,8 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(commands=['social_rating'])
 async def show_rating_stats(message: types.Message):
-    await message.reply("\n".join(f"{username} {rating}" for username, rating in chat_stats(message.chat.id)))
+    ranks = sorted(chat_stats(message.chat.id), key=lambda x: -x[1])
+    await message.reply("\n".join(f"{username} {rating}" for username, rating in ranks))
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
