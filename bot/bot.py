@@ -1,11 +1,14 @@
 # *-* encoding utf-8
 import logging
+import random
+from time import time
 
 from aiogram import Bot, types
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
-from bot.constants import add_rating_sticker_id, remove_rating_sticker_id, HELP_MESSAGE
+from bot.constants import add_rating_sticker_id, remove_rating_sticker_id, HELP_MESSAGE, DO_NOT_CHANGE_MY_RATING, \
+    timeout_table, add_rating_timeout
 from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
 from database import change_rating, chat_stats
 
@@ -49,12 +52,31 @@ async def on_shutdown(dispatcher):
     logging.warning("Bye! Shutting down webhook connection")
 
 
+def can_change_rating(message, affected_user, user_id):
+    now = time()
+    timeout = int(timeout_table.get(message.chat.id, {}).get(affected_user.id, 0) - now)
+    if affected_user.id == Bot.me.id:
+        await message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
+        return False
+    elif affected_user.is_bot:
+        await message.reply("Can't edit bot's social rating credit!")
+        return False
+    elif affected_user.id == user_id:
+        await message.reply("Can't edit self social rating credit!")
+        return False
+    elif timeout > 0:
+        await message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
+        return False
+    timeout_table.setdefault(message.chat.id, {})[affected_user.id] = now + add_rating_timeout
+    return True
+
+
 async def change_social_rating(message: types.Message):
     sender_username = message.from_user.username
     if message.reply_to_message is None:
         logging.debug(f"[change_social_rating] User {sender_username} didn't reply.")
         return
-
+    
     affected_user = message.reply_to_message.from_user
     user_id = affected_user.id
     chat_id = message.chat.id
@@ -64,16 +86,17 @@ async def change_social_rating(message: types.Message):
     logging.info(f"[change_social_rating] {username}'s rating changed by {sender_username}.\n"
                  f"user_id: {user_id}, chat_id: {chat_id}")
     
-    if sticker.file_unique_id == add_rating_sticker_id:
-        new_rating = change_rating(user_id, chat_id, username, 20)
-        await message.reply(f"{sender_username} added 20 social rating credit to {username}\n"
-                            f"Now his rating is {new_rating}")
-    elif sticker.file_unique_id == remove_rating_sticker_id:
-        new_rating = change_rating(user_id, chat_id, username, -20)
-        await message.reply(f"{sender_username} removed 20 social rating from to {username}\n"
-                            f"Now his rating is {new_rating}")
-    else:
-        logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
+    if can_change_rating(message, affected_user, user_id):
+        if sticker.file_unique_id == add_rating_sticker_id:
+            new_rating = change_rating(user_id, chat_id, username, 20)
+            await message.reply(f"{sender_username} added 20 social rating credit to {username}\n"
+                                f"Now his rating is {new_rating}")
+        elif sticker.file_unique_id == remove_rating_sticker_id:
+            new_rating = change_rating(user_id, chat_id, username, -20)
+            await message.reply(f"{sender_username} removed 20 social rating from to {username}\n"
+                                f"Now his rating is {new_rating}")
+        else:
+            logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
 
 
 def main():
