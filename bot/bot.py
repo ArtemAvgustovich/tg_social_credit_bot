@@ -52,7 +52,7 @@ async def on_shutdown(dispatcher):
     logging.warning("Bye! Shutting down webhook connection")
 
 
-def can_change_rating(message, affected_user, user_id):
+async def can_change_rating(message, affected_user, user_id):
     now = time()
     timeout = int(timeout_table.get(message.chat.id, {}).get(affected_user.id, 0) - now)
     if affected_user.id == Bot.me.id:
