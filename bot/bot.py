@@ -52,20 +52,24 @@ async def on_shutdown(dispatcher):
     logging.warning("Bye! Shutting down webhook connection")
 
 
-async def can_change_rating(message, affected_user, user_id):
+async def can_change_rating(message, affected_user):
+    logging.debug(f"[can_change_rating] affected_user_id = {affected_user.id}, sender_id = {message.from_user.id}")
+    
     now = time()
     timeout = int(timeout_table.get(message.chat.id, {}).get(affected_user.id, 0) - now)
-    if affected_user.id == Bot.me.id:
-        await message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
+    me = await bot.me
+    
+    if affected_user.id == me.id:
+        message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
         return False
     elif affected_user.is_bot:
-        await message.reply("Can't edit bot's social rating credit!")
+        message.reply("Can't edit bot's social rating credit!")
         return False
-    elif affected_user.id == user_id:
-        await message.reply("Can't edit self social rating credit!")
+    elif affected_user.id == message.from_user.id:
+        message.reply("Can't edit self social rating credit!")
         return False
     elif timeout > 0:
-        await message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
+        message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
         return False
     timeout_table.setdefault(message.chat.id, {})[affected_user.id] = now + add_rating_timeout
     return True
@@ -83,10 +87,10 @@ async def change_social_rating(message: types.Message):
     sticker = message.sticker
     username = affected_user.username
     
-    logging.info(f"[change_social_rating] {username}'s rating changed by {sender_username}.\n"
-                 f"user_id: {user_id}, chat_id: {chat_id}")
-    
-    if can_change_rating(message, affected_user, user_id):
+    can_change = await can_change_rating(message, affected_user)
+    if can_change:
+        logging.info(f"[change_social_rating] {username}'s rating changed by {sender_username}.\n"
+                     f"user_id: {user_id}, chat_id: {chat_id}")
         if sticker.file_unique_id == add_rating_sticker_id:
             new_rating = change_rating(user_id, chat_id, username, 20)
             await message.reply(f"{sender_username} added 20 social rating credit to {username}\n"
@@ -97,6 +101,8 @@ async def change_social_rating(message: types.Message):
                                 f"Now his rating is {new_rating}")
         else:
             logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
+    else:
+        await message.reply(reply_message)
 
 
 def main():
