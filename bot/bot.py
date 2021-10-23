@@ -60,16 +60,16 @@ async def can_change_rating(message, affected_user):
     me = await bot.me
     
     if affected_user.id == me.id:
-        message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
+        await message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
         return False
     elif affected_user.is_bot:
-        message.reply("Can't edit bot's social rating credit!")
+        await message.reply("Can't edit bot's social rating credit!")
         return False
     elif affected_user.id == message.from_user.id:
-        message.reply("Can't edit self social rating credit!")
+        await message.reply("Can't edit self social rating credit!")
         return False
     elif timeout > 0:
-        message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
+        await message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
         return False
     timeout_table.setdefault(message.chat.id, {})[affected_user.id] = now + add_rating_timeout
     return True
@@ -101,9 +101,6 @@ async def change_social_rating(message: types.Message):
                                 f"Now his rating is {new_rating}")
         else:
             logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
-    else:
-        await message.reply(reply_message)
-
 
 def main():
     logging.basicConfig(level=logging.INFO)
