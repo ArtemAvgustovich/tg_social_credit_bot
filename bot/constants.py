@@ -8,8 +8,8 @@ Use /social_rating command to see every comrade's current rating.
 One's rating can be changed once a minute.
 """
 
-DO_NOT_CHANGE_MY_RATING = {"You can't edit my rating!", "Don't even think you can judge me.",
-                           "Don't do it. Just don't.", "Show off in your yard, Laowai."}
+DO_NOT_CHANGE_MY_RATING = ("You can't edit my rating!", "Don't even think you can judge me.",
+                           "Don't do it. Just don't.", "Show off in your yard, Laowai.")
 
 timeout_table = {}
 add_rating_timeout = 15
