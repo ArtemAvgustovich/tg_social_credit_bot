@@ -12,4 +12,4 @@ DO_NOT_CHANGE_MY_RATING = ("You can't edit my rating!", "Don't even think you ca
                            "Don't do it. Just don't.", "Show off in your yard, Laowai.")
 
 timeout_table = {}
-add_rating_timeout = 15
+change_rating_timeout = 180

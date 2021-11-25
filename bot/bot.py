@@ -8,7 +8,7 @@ from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
 from bot.constants import add_rating_sticker_id, remove_rating_sticker_id, HELP_MESSAGE, DO_NOT_CHANGE_MY_RATING, \
-    timeout_table, add_rating_timeout
+    timeout_table, change_rating_timeout
 from bot.settings import TOKEN, WEBHOOK_PATH, WEBAPP_PORT, WEBAPP_HOST, WEBHOOK_URL
 from database import change_rating, chat_stats
 
@@ -32,15 +32,21 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(commands=['social_rating'])
 async def show_rating_stats(message: types.Message):
-    ranks = sorted(chat_stats(message.chat.id), key=lambda x: -x[1])
-    await message.reply("\n".join(f"{username} {rating}" for username, rating in ranks))
+    try:
+        ranks = sorted(chat_stats(message.chat.id), key=lambda x: -x[1])
+        await message.reply("\n".join(f"{username} {rating}" for username, rating in ranks))
+    except Exception as e:
+        logging.error(e)
 
 
 @dp.message_handler(content_types=types.ContentType.STICKER)
 async def process_sticker(message: types.Message):
-    logging.info(f"[process_sticker] Processing sticker ({message.sticker.set_name}, {message.sticker.emoji})")
-    if message.sticker.set_name == 'PoohSocialCredit':
-        await change_social_rating(message)
+    try:
+        logging.info(f"[process_sticker] Processing sticker ({message.sticker.set_name}, {message.sticker.emoji})")
+        if message.sticker.set_name == 'PoohSocialCredit':
+            await change_social_rating(message)
+    except Exception as e:
+        logging.error(e)
 
 
 async def on_startup(dispatcher):
@@ -52,27 +58,34 @@ async def on_shutdown(dispatcher):
     logging.warning("Bye! Shutting down webhook connection")
 
 
-async def can_change_rating(message, affected_user):
-    logging.debug(f"[can_change_rating] affected_user_id = {affected_user.id}, sender_id = {message.from_user.id}")
-    
-    now = time()
-    timeout = int(timeout_table.get(message.chat.id, {}).get(affected_user.id, 0) - now)
-    me = await bot.me
-    
-    if affected_user.id == me.id:
-        await message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
-        return False
-    elif affected_user.is_bot:
-        await message.reply("Can't edit bot's social rating credit!")
-        return False
-    elif affected_user.id == message.from_user.id:
-        await message.reply("Can't edit self social rating credit!")
-        return False
-    elif timeout > 0:
-        await message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout} seconds!")
-        return False
-    timeout_table.setdefault(message.chat.id, {})[affected_user.id] = now + add_rating_timeout
-    return True
+async def can_change_rating(message, affected_user, sender_id):
+    try:
+        logging.debug(f"[can_change_rating] affected_user_id = {affected_user.id}, sender_id = {message.from_user.id}")
+        
+        now = time()
+        timeout = timeout_table.get(message.chat.id, {}).get(affected_user.id, {}).get(sender_id, 0)
+        timeout_left = int(timeout - now)
+        me = await bot.me
+        
+        if affected_user.id == me.id:
+            await message.reply(random.choice(DO_NOT_CHANGE_MY_RATING))
+            return False
+        elif affected_user.is_bot:
+            await message.reply("Can't edit bot's social rating credit!")
+            return False
+        elif affected_user.id == message.from_user.id:
+            await message.reply("Can't edit self social rating credit!")
+            return False
+        elif timeout_left > 0:
+            await message.reply(f"You can't edit {affected_user.username}'s social rating credit for {timeout_left} seconds!")
+            return False
+        
+        timeout_table.setdefault(message.chat.id, {}).setdefault(affected_user.id, {})[sender_id] = \
+            now + change_rating_timeout
+        
+        return True
+    except Exception as e:
+        logging.error(e)
 
 
 async def change_social_rating(message: types.Message):
@@ -83,11 +96,12 @@ async def change_social_rating(message: types.Message):
     
     affected_user = message.reply_to_message.from_user
     user_id = affected_user.id
+    sender_id = message.from_user.id
     chat_id = message.chat.id
     sticker = message.sticker
     username = affected_user.username
     
-    can_change = await can_change_rating(message, affected_user)
+    can_change = await can_change_rating(message, affected_user, sender_id)
     if can_change:
         logging.info(f"[change_social_rating] {username}'s rating changed by {sender_username}.\n"
                      f"user_id: {user_id}, chat_id: {chat_id}")
@@ -101,6 +115,7 @@ async def change_social_rating(message: types.Message):
                                 f"Now his rating is {new_rating}")
         else:
             logging.warning(f"[change_social_rating] Unknown sticker ({sticker.set_name}, {sticker.emoji})")
+
 
 def main():
     logging.basicConfig(level=logging.INFO)
